@@ -15,26 +15,37 @@
 		<dict>
 			<key>cell</key>						<string>PSSwitchCell</string>
 			<key>default</key>					<true/>
-			<key>defaults</key>					<string>com.noisyflake.wificarrier</string>
+			<key>defaults</key>					<string>com.highrez.wificarrier</string>
 			<key>key</key>						<string>enabled</string>
 			<key>label</key>					<string>Enable</string>
-			<key>PostNotification</key> 		<string>com.noisyflake.wificarrier/prefsupdated</string>
+			<key>PostNotification</key> 		<string>com.highrez.wificarrier/prefsupdated</string>
 		</dict>
 
 		<dict>
 			<key>cell</key> 					<string>PSEditTextCell</string>
 			<key>default</key> 					<string></string>
-			<key>defaults</key> 				<string>com.noisyflake.wificarrier</string>
+			<key>defaults</key> 				<string>com.highrez.wificarrier</string>
 			<key>placeholder</key> 				<string>Custom Carrier Text</string>
 			<key>noAutoCorrect</key> 			<true/>
 			<key>key</key> 						<string>customCarrier</string>
 			<key>label</key> 					<string></string>
-			<key>PostNotification</key> 		<string>com.noisyflake.wificarrier/prefsupdated</string>
+			<key>PostNotification</key> 		<string>com.highrez.wificarrier/prefsupdated</string>
+		</dict>
+		
+		<dict>
+			<key>cell</key> 					<string>PSEditTextCell</string>
+			<key>default</key> 					<string></string>
+			<key>defaults</key> 				<string>com.highrez.wificarrier</string>
+			<key>placeholder</key> 				<string>WiFi Calling Text</string>
+			<key>noAutoCorrect</key> 			<true/>
+			<key>key</key> 						<string>wifiCalling</string>
+			<key>label</key> 					<string></string>
+			<key>PostNotification</key> 		<string>com.highrez.wificarrier/prefsupdated</string>
 		</dict>
 
 		<dict>
 			<key>cell</key> 					<string>PSGroupCell</string>
-			<key>label</key> 					<string>Buy me a coffee</string>
+			<key>label</key> 					<string>Buy me a beer</string>
 		</dict>
 		<dict>
 			<key>cell</key> 					<string>PSButtonCell</string>
@@ -44,7 +55,7 @@
 
 		<dict>
 			<key>cell</key> 					<string>PSGroupCell</string>
-			<key>footerText</key> 				<string>Developed with ♥ by NoisyFlake</string>
+			<key>footerText</key> 				<string>Created by Phil Gibbons, based on the work by NoisyFlake</string>
 			<key>footerAlignment</key> 			<string>1</string>
 		</dict>
 

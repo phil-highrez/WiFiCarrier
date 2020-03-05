@@ -10,6 +10,38 @@ static id subscriptionContext = nil;
 static BOOL enabled;
 static NSString *customCarrier;
 
+%hook STTelephonyStateProvider
+-(void)operatorNameChanged:(id)arg1 name:(id)arg2 {
+subscriptionContext = arg1;
+	originalName = arg2;
+
+	if (!enabled || !hasFullyLoaded) {
+		%orig;
+		return;
+	}
+
+	SBWiFiManager *manager = [%c(SBWiFiManager) sharedInstance];
+	NSString *networkName = [manager currentNetworkName];
+
+	NSString* newNetwork = networkName;
+	NSString* newCarrier = customCarrier;
+        
+	if ([originalName containsString:@"WiFi Call"])
+	{
+		newNetwork = [NSString stringWithFormat: @"%@ %@", networkName, @"WiFi Call"];
+		newCarrier = [NSString stringWithFormat: @"%@ %@", newCarrier, @"WiFi Call"];
+	}
+
+	if ([networkName length] > 0) {
+		%orig(arg1, newNetwork);
+	} else if ([customCarrier length] > 0) {
+		%orig(arg1, newCarrier);
+	} else {
+		%orig;
+	}
+}
+%end
+
 %hook SBTelephonyManager
 -(void)operatorNameChanged:(id)arg1 name:(id)arg2 {
 	subscriptionContext = arg1;
@@ -23,14 +55,22 @@ static NSString *customCarrier;
 	SBWiFiManager *manager = [%c(SBWiFiManager) sharedInstance];
 	NSString *networkName = [manager currentNetworkName];
 
+	NSString* newNetwork = networkName;
+	NSString* newCarrier = customCarrier;
+        
+	if ([originalName containsString:@"WiFi Call"])
+	{
+		newNetwork = [NSString stringWithFormat: @"%@ %@", networkName, @"WFC"];
+		newCarrier = [NSString stringWithFormat: @"%@ %@", newCarrier, @"WiFi Call"];
+	}
+
 	if ([networkName length] > 0) {
-		%orig(arg1, networkName);
+		%orig(arg1, newNetwork);
 	} else if ([customCarrier length] > 0) {
-		%orig(arg1, customCarrier);
+		%orig(arg1, newCarrier);
 	} else {
 		%orig;
 	}
-
 }
 %end
 
@@ -59,7 +99,10 @@ static void forceUpdate() {
 	if (!hasFullyLoaded || subscriptionContext == nil) return;
 
 	SBTelephonyManager *manager = [%c(SBTelephonyManager) sharedTelephonyManager];
-	[manager operatorNameChanged:subscriptionContext name:originalName];
+	STTelephonyStateProvider *provider = [manager telephonyStateProvider];
+        if (provider!=nil) {
+		[provider operatorNameChanged:subscriptionContext name:originalName];
+	}
 }
 
 // ===== PREFERENCE HANDLING ===== //
