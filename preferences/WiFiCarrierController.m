@@ -55,7 +55,7 @@
 		CGRect backgroundFrame = CGRectMake(-50, -35, width+50, height);
 		background = [[UILabel alloc] initWithFrame:backgroundFrame];
 		[background layoutIfNeeded];
-		background.backgroundColor = [UIColor colorWithRed:0.30 green:0.85 blue:0.39 alpha:1.0];
+		background.backgroundColor = [UIColor colorWithRed:0.31 green:0.57 blue:0.80 alpha:1.0];
 		background.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
 
 		CGRect tweakNameFrame = CGRectMake(0, -40, width, height);
@@ -65,7 +65,7 @@
 		tweakName.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
 		tweakName.font = [UIFont fontWithName:@"HelveticaNeue-Light" size:40.0f];
 		tweakName.textColor = [UIColor whiteColor];
-		tweakName.text = @"WiFiCarrier";
+		tweakName.text = @"WiFiCarrier+";
 		tweakName.textAlignment = NSTextAlignmentCenter;
 
 		CGRect versionFrame = CGRectMake(0, -5, width, height);
@@ -74,7 +74,7 @@
 		version.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
 		version.font = [UIFont fontWithName:@"HelveticaNeue-Light" size:15.0f];
 		version.textColor = [UIColor whiteColor];
-		version.text = @"Version 1.1.1";
+		version.text = @"Version 1.0.0";
 		version.backgroundColor = [UIColor clearColor];
 		version.textAlignment = NSTextAlignmentCenter;
 

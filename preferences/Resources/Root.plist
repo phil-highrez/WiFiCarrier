@@ -20,7 +20,19 @@
 			<key>label</key>					<string>Enable</string>
 			<key>PostNotification</key> 		<string>com.highrez.wificarrier/prefsupdated</string>
 		</dict>
+		<dict>
+			<key>cell</key>						<string>PSSwitchCell</string>
+			<key>default</key>					<true/>
+			<key>defaults</key>					<string>com.highrez.wificarrier</string>
+			<key>key</key>						<string>enableSSID</string>
+			<key>label</key>					<string>Use WiFi SSID</string>
+			<key>PostNotification</key> 		<string>com.highrez.wificarrier/prefsupdated</string>
+		</dict>
 
+		<dict>
+			<key>cell</key> 					<string>PSGroupCell</string>
+			<key>label</key> 					<string>Custom carrier text</string>
+		</dict>
 		<dict>
 			<key>cell</key> 					<string>PSEditTextCell</string>
 			<key>default</key> 					<string></string>
@@ -33,13 +45,49 @@
 		</dict>
 		
 		<dict>
+			<key>cell</key> 					<string>PSGroupCell</string>
+			<key>label</key> 					<string>Wifi Calling</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>						<string>PSSwitchCell</string>
+			<key>default</key>					<true/>
+			<key>defaults</key>					<string>com.highrez.wificarrier</string>
+			<key>key</key>						<string>detectWFC</string>
+			<key>label</key>					<string>Detect WiFi Calling</string>
+			<key>PostNotification</key> 		<string>com.highrez.wificarrier/prefsupdated</string>
+		</dict>
+		
+		<dict>
 			<key>cell</key> 					<string>PSEditTextCell</string>
-			<key>default</key> 					<string></string>
+			<key>default</key> 					<string>WiFi Call</string>
 			<key>defaults</key> 				<string>com.highrez.wificarrier</string>
-			<key>placeholder</key> 				<string>WiFi Calling Text</string>
+			<key>placeholder</key> 				<string>Detect WiFi Calling</string>
 			<key>noAutoCorrect</key> 			<true/>
-			<key>key</key> 						<string>wifiCalling</string>
-			<key>label</key> 					<string></string>
+			<key>key</key> 						<string>srcWiFiCalling</string>
+			<key>label</key> 					<string>Carrier WFC:</string>
+			<key>PostNotification</key> 		<string>com.highrez.wificarrier/prefsupdated</string>
+		</dict>
+		
+		<dict>
+			<key>cell</key> 					<string>PSEditTextCell</string>
+			<key>default</key> 					<string>WFC</string>
+			<key>defaults</key> 				<string>com.highrez.wificarrier</string>
+			<key>placeholder</key> 				<string>Append to SSID</string>
+			<key>noAutoCorrect</key> 			<true/>
+			<key>key</key> 						<string>wifiCalling1</string>
+			<key>label</key> 					<string>Add SSID:</string>
+			<key>PostNotification</key> 		<string>com.highrez.wificarrier/prefsupdated</string>
+		</dict>
+		
+		<dict>
+			<key>cell</key> 					<string>PSEditTextCell</string>
+			<key>default</key> 					<string>WiFi Call</string>
+			<key>defaults</key> 				<string>com.highrez.wificarrier</string>
+			<key>placeholder</key> 				<string>Append to custom carrier</string>
+			<key>noAutoCorrect</key> 			<true/>
+			<key>key</key> 						<string>wifiCalling2</string>
+			<key>label</key> 					<string>Add Carrier:</string>
 			<key>PostNotification</key> 		<string>com.highrez.wificarrier/prefsupdated</string>
 		</dict>
 
