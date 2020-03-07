@@ -13,11 +13,11 @@
 			<key>isController</key>
 			<true/>
 			<key>label</key>
-			<string>WiFiCarrier</string>
+			<string>WiFiCarrier+</string>
 			<key>icon</key>
 			<string>icon.png</string>
 			<key>packageID</key>
-			<string>com.noisyflake.ipadstatusbar</string>
+			<string>com.highrez.wificarrier</string>
 		</dict>
 	</dict>
 </plist>

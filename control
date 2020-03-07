@@ -1,10 +1,10 @@
 Package: com.highrez.wificarrier
 Name: WiFiCarrier+
 Depends: mobilesubstrate
-Version: 1.0.0
+Version: 1.0.1
 Architecture: iphoneos-arm
 Description: An Enhanced version of NoisyFlake WiFiCarrier for IOS 13. Supports additions for WiFi Calling
-Depiction: https://apt.noisyflake.com/depictions/index.html?id=com.noisyflake.wificarrier
-Maintainer: Phil
-Author: Phil
+Depiction: https://phil-highrez.github.io/repo/depictions/?p=com.highrez.wificarrier
+Maintainer: Phil phil@highrez.co.uk
+Author: Phil, NoisyFlake
 Section: Tweaks
