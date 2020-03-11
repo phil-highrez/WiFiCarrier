@@ -1,6 +1,7 @@
 #include "WiFiCarrierController.h"
 
 @implementation WiFiCarrierController
+MFMailComposeViewController *mMFComposer;
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -35,6 +36,35 @@
 
 -(void)paypal {
 	[[UIApplication sharedApplication] openURL:[NSURL URLWithString: @"https://paypal.me/PhilHighrez"] options:@{} completionHandler:nil];
+}
+
+-(void)emailDebug {
+	NSString *messageBody = [NSString stringWithContentsOfFile:@"/tmp/WiFiCarrier.log" encoding:NSUTF8StringEncoding error:nil];
+	if (messageBody!=nil && [messageBody length] > 0) {
+		NSArray *toRecipents = [NSArray arrayWithObject:@"WiFiCarrier@highrez.co.uk"];
+		mMFComposer = [[MFMailComposeViewController alloc] init];
+		mMFComposer.mailComposeDelegate = self;
+		[mMFComposer setSubject:@"WiFiCarrier Debug"];
+		[mMFComposer setMessageBody:messageBody isHTML:NO];
+		[mMFComposer setToRecipients:toRecipents];
+		[self presentViewController:mMFComposer animated:YES completion:NULL];
+	} else {
+		UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"WiFiCarrier+"
+                           message:@"The debug log is empty."
+                           preferredStyle:UIAlertControllerStyleAlert];
+
+		UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+							handler:^(UIAlertAction * action) {}];
+
+		[alert addAction:defaultAction];
+		[self presentViewController:alert animated:YES completion:nil];
+	}		
+}
+
+- (void)mailComposeController:(MFMailComposeViewController *)controller 
+          didFinishWithResult:(MFMailComposeResult)result 
+                        error:(NSError *)error {
+    [controller dismissViewControllerAnimated:YES completion:nil];
 }
 
 -(void)save {
@@ -74,7 +104,7 @@
 		version.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
 		version.font = [UIFont fontWithName:@"HelveticaNeue-Light" size:15.0f];
 		version.textColor = [UIColor whiteColor];
-		version.text = @"Version 1.0.3";
+		version.text = @"Version 1.0.3a";
 		version.backgroundColor = [UIColor clearColor];
 		version.textAlignment = NSTextAlignmentCenter;
 

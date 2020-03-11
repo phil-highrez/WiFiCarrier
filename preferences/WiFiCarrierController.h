@@ -1,7 +1,9 @@
 #import <Preferences/PSListController.h>
 #import <Preferences/PSSpecifier.h>
+#import <MessageUI/MessageUI.h>
+#import <MessageUI/MFMailComposeViewController.h>
 
-@interface WiFiCarrierController : PSListController
+@interface WiFiCarrierController : PSListController <MFMailComposeViewControllerDelegate>
 @end
 
 @interface WiFiCarrierLogo : PSTableCell {

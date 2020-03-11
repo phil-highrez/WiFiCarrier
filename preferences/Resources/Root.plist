@@ -30,7 +30,7 @@
 		</dict>
 		<dict>
 			<key>cell</key>						<string>PSSwitchCell</string>
-			<key>default</key>					<true/>
+			<key>default</key>					<false/>
 			<key>defaults</key>					<string>com.highrez.wificarrier</string>
 			<key>key</key>						<string>enableIPADDR</string>
 			<key>label</key>					<string>Use IP Address</string>
@@ -47,8 +47,16 @@
 
 		<dict>
 			<key>cell</key> 					<string>PSGroupCell</string>
-			<key>label</key> 					<string>Custom carrier text</string>
+			<key>label</key> 					<string>Custom Carrier</string>
 		</dict>
+		<dict>
+			<key>cell</key>						<string>PSSwitchCell</string>
+			<key>default</key>					<false/>
+			<key>defaults</key>					<string>com.highrez.wificarrier</string>
+			<key>key</key>						<string>enableCustomCarrier</string>
+			<key>label</key>					<string>Enable</string>
+			<key>PostNotification</key> 		<string>com.highrez.wificarrier/prefsupdated</string>
+		</dict>		
 		<dict>
 			<key>cell</key> 					<string>PSEditTextCell</string>
 			<key>default</key> 					<string></string>
@@ -64,7 +72,6 @@
 			<key>cell</key> 					<string>PSGroupCell</string>
 			<key>label</key> 					<string>Wifi Calling</string>
 		</dict>
-
 		<dict>
 			<key>cell</key>						<string>PSSwitchCell</string>
 			<key>default</key>					<true/>
@@ -72,8 +79,7 @@
 			<key>key</key>						<string>detectWFC</string>
 			<key>label</key>					<string>Detect WiFi Calling</string>
 			<key>PostNotification</key> 		<string>com.highrez.wificarrier/prefsupdated</string>
-		</dict>
-		
+		</dict>		
 		<dict>
 			<key>cell</key> 					<string>PSEditTextCell</string>
 			<key>default</key> 					<string>WiFi Call</string>
@@ -103,8 +109,31 @@
 			<key>placeholder</key> 				<string>Append to custom carrier</string>
 			<key>noAutoCorrect</key> 			<true/>
 			<key>key</key> 						<string>wifiCalling2</string>
-			<key>label</key> 					<string>Add to Carrier:</string>
+			<key>label</key> 					<string>Add to Carrier*:</string>
 			<key>PostNotification</key> 		<string>com.highrez.wificarrier/prefsupdated</string>
+		</dict>
+		<dict>
+			<key>cell</key> 					<string>PSGroupCell</string>
+			<key>footerText</key> 				<string>* Only applicable when not using SSID/IP</string>
+			<key>footerAlignment</key> 			<string>0</string>
+		</dict>		
+
+		<dict>
+			<key>cell</key> 					<string>PSGroupCell</string>
+			<key>label</key> 					<string>Debugging</string>
+		</dict>
+		<dict>
+			<key>cell</key>						<string>PSSwitchCell</string>
+			<key>default</key>					<false/>
+			<key>defaults</key>					<string>com.highrez.wificarrier</string>
+			<key>key</key>						<string>enableDebug</string>
+			<key>label</key>					<string>Enable</string>
+			<key>PostNotification</key> 		<string>com.highrez.wificarrier/prefsupdated</string>
+		</dict>
+		<dict>
+			<key>cell</key> 					<string>PSButtonCell</string>
+			<key>action</key> 					<string>emailDebug</string>
+			<key>label</key> 					<string>Send by Email</string>
 		</dict>
 
 		<dict>

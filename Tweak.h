@@ -36,3 +36,6 @@ static inline void GetPublicIP();
 static inline NSString *GetNetworkNameOrIP();
 static inline NSString *GetIPAddress();
 static inline BOOL IsEmpty(id thing);
+
+static inline NSString *GetCarrierText(id original);
+static inline void Debug(id thing);
