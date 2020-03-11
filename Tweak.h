@@ -1,3 +1,6 @@
+
+#define kWFCTapGesture 0xdeadbeef
+
 @interface SBWiFiManager : NSObject
 +(id)sharedInstance;
 -(id)currentNetworkName;
@@ -30,12 +33,26 @@
 -(void)setSession:(void*)arg1 ;
 @end
 
+@interface UIStatusBarWindow : UIWindow 
+@end
+
+// iOS 13 //
+@interface UIStatusBarTapAction : NSObject
+@property (nonatomic, readonly) NSInteger type;
+@end
+
+@interface SBMainDisplaySceneLayoutStatusBarView : UIView
+- (void)_statusBarTapped:(id)sender type:(NSInteger)type;
+@end
+
+// Statics //
 static inline void forceUpdate();
 static inline void GetPublicIP();
 
 static inline NSString *GetNetworkNameOrIP();
 static inline NSString *GetIPAddress();
 static inline BOOL IsEmpty(id thing);
-
 static inline NSString *GetCarrierText(id original);
-static inline void Debug(id thing);
+
+extern void ChangeState();
+extern void Debug(id thing);

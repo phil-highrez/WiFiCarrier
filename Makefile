@@ -6,8 +6,8 @@ FINALPACKAGE=1
 include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = WiFiCarrier
-WiFiCarrier_FILES = Tweak.xm
-WiFiCarrier_CFLAGS += -fobjc-arc
+WiFiCarrier_FILES = Tweak.xm iOS13.xm
+WiFiCarrier_CFLAGS += -fobjc-arc -w
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 

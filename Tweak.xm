@@ -1,4 +1,5 @@
-#import "Tweak.h"
+#include "Tweak.h"
+#include "Version.h"
 #import <Foundation/Foundation.h>
 #import <SystemConfiguration/SystemConfiguration.h>
 #include <ifaddrs.h>
@@ -19,6 +20,7 @@ static BOOL bIsGettingIP = NO;
 static NSString *originalName = @"";
 static NSString *publicIP = @"";
 static id subscriptionContext = nil;
+static int nCurrentState = -1;
 
 //Reachability
 //static SCNetworkReachabilityRef reachability;
@@ -51,7 +53,7 @@ static NSString *customWiFiCalling2 = @"";
 -(void)currentDataSimChanged:(id)arg1 {
 	%orig;
 	if (enabled) {
-		Debug([NSString stringWithFormat:@"currentDataSimChanged: '%@'", arg1]);
+		Debug([NSString stringWithFormat:@"STTelephonyStateProvider currentDataSimChanged: '%@'", arg1]);
 		publicIP = @"";
 		forceUpdate();
 	}
@@ -59,18 +61,11 @@ static NSString *customWiFiCalling2 = @"";
 -(void)simStatusDidChange:(id)arg1 status:(id)arg2 {
 	%orig;
 	if (enabled) {
-		Debug([NSString stringWithFormat:@"simStatusDidChange: '%@' - '%@'", arg1, arg2]);
+		Debug([NSString stringWithFormat:@"STTelephonyStateProvider simStatusDidChange: '%@' - '%@'", arg1, arg2]);
 		publicIP = @"";
 		forceUpdate();
 	}
 }
-//-(void)displayStatusChanged:(id)arg1 status:(id)arg2 {
-//	%orig;
-//	if (enabled) {
-//		publicIP = @"";
-//		forceUpdate();
-//	}
-//}
 %end
 
 %hook SBTelephonyManager
@@ -88,7 +83,7 @@ static NSString *customWiFiCalling2 = @"";
 -(BOOL)isUsingVPNConnection {
 	BOOL bRes=%orig;
 	if (enabled && bLastVPN!=bRes) {
-		Debug([NSString stringWithFormat:@"isUsingVPNConnection: %@", bRes ? @"YES" : @"NO"]);
+		Debug([NSString stringWithFormat:@"SBTelephonyManager isUsingVPNConnection: %@", bRes ? @"YES" : @"NO"]);
 		bLastVPN = bRes;
 		publicIP=@"";
 		forceUpdate();
@@ -101,7 +96,7 @@ static NSString *customWiFiCalling2 = @"";
 -(void)_updateCurrentNetwork {
 	%orig;
 	if (enabled) {
-		Debug(@"_updateCurrentNetwork:");
+		Debug(@"SBWiFiManager _updateCurrentNetwork:");
 		publicIP=@"";
 		forceUpdate();
 	}
@@ -113,7 +108,7 @@ static NSString *customWiFiCalling2 = @"";
 -(void)setSession:(void*)arg1 {
 	%orig;
 	if (enabled) {
-		Debug(@"_updateCurrentNetwork:");
+		Debug(@"NEVPNConnection setSession");
 		publicIP = @"";
 		forceUpdate();
 	}
@@ -131,8 +126,36 @@ static NSString *customWiFiCalling2 = @"";
 }
 %end
 
+%hook UIStatusBarWindow
+- (id)initWithFrame:(CGRect)frame {
+    self = %orig;
+	[self addGestureRecognizer:[[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleGestureFrom:)]];
+	return self;
+}
+
+%new -(void)handleGestureFrom:(UILongPressGestureRecognizer *)recognizer {
+	if (recognizer.state == UIGestureRecognizerStateBegan) {
+		ChangeState();	
+	}
+}
+%end
+
 //--------------------------------------------------//
 // ===== Static functions local to this tweak ===== //
+
+void ChangeState() {
+	if (hasFullyLoaded)
+	{
+		nCurrentState++;
+		if (nCurrentState==1 && !enableExtIP)
+			nCurrentState=2;
+		else if (nCurrentState == 3 && !enableCustomCarrier)
+			nCurrentState=4;
+		else if (nCurrentState>4)
+			nCurrentState=0;
+		forceUpdate();
+	}
+}
 
 static inline NSString *GetCarrierText(id original) {
 	NSString* newNetwork = @"";
@@ -146,7 +169,7 @@ static inline NSString *GetCarrierText(id original) {
 	}
 
 	//Check for WiFi Calling and if found, append our custom WFC text
-	if (enableWFC && [srcWiFiCalling length] > 0)
+	if (enableWFC && [srcWiFiCalling length] > 0 && nCurrentState!=4)
 	{
 		if ([originalName containsString:srcWiFiCalling])
 		{
@@ -209,9 +232,19 @@ static inline NSString *GetNetworkNameOrIP()
 {
 	SBWiFiManager *manager = [%c(SBWiFiManager) sharedInstance];
 	bool bAvailable = NO;
+	NSString *networkName = [manager currentNetworkName];
 
-	if (enableIPADDR) {
-		if (enableExtIP) {
+	if (nCurrentState==4)
+		return originalName;
+
+	if (nCurrentState==3)
+		return customCarrier;
+
+	if (nCurrentState==0)
+		return networkName;
+
+	if (enableIPADDR && (nCurrentState==1 || nCurrentState==2)) {
+		if (enableExtIP && nCurrentState==1) {
 			if (!bIsGettingIP) {
 				bIsGettingIP = YES;
 				//Get the public IP - only if the server is reachable....
@@ -234,13 +267,17 @@ static inline NSString *GetNetworkNameOrIP()
 		}
 		NSString* ip = GetIPAddress();
 		if (enableExtIP) {
+			if (nCurrentState==2)
+				return ip;
+
 			if (IsEmpty(publicIP))
 			{
 				if (!IsEmpty(ip)) //We have a local IP but no public IP... Append ?! to front (ie. looking)
-					return  [NSString stringWithFormat: @"🔍 %@", GetIPAddress()];
+					return  [NSString stringWithFormat: @"🔍 %@", ip];
 			}
-			else
+			else {
 				return publicIP;
+			}
 		}
 		return ip;
 	}
@@ -251,7 +288,6 @@ static inline NSString *GetNetworkNameOrIP()
 	}
 
 	//Return the SSID
-	NSString *networkName = [manager currentNetworkName];
 	return networkName;
 }
 
@@ -370,7 +406,7 @@ static void initPrefs() {
   }
 }
 
-static inline void Debug(id thing) {
+void Debug(id thing) {
 	if (enableDebug && dateFormatter!=nil) {
 		NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
 		NSString *content = [NSString stringWithFormat:@"%@: %@\n",dateString, thing];
@@ -391,10 +427,9 @@ static inline void Debug(id thing) {
 }
 
 %ctor {
-  dateFormatter = [[NSDateFormatter alloc] init];
-  [dateFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
-  initPrefs();
-  loadPrefs();
-  
-  CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)refreshPrefs, CFSTR("com.highrez.wificarrier/prefsupdated"), NULL, CFNotificationSuspensionBehaviorCoalesce);
+	dateFormatter = [[NSDateFormatter alloc] init];
+	[dateFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+	initPrefs();
+	loadPrefs();
+	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)refreshPrefs, CFSTR("com.highrez.wificarrier/prefsupdated"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 }

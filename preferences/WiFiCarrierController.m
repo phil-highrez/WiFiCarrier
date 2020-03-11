@@ -1,3 +1,4 @@
+#include "../Version.h"
 #include "WiFiCarrierController.h"
 
 @implementation WiFiCarrierController
@@ -104,7 +105,7 @@ MFMailComposeViewController *mMFComposer;
 		version.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
 		version.font = [UIFont fontWithName:@"HelveticaNeue-Light" size:15.0f];
 		version.textColor = [UIColor whiteColor];
-		version.text = @"Version 1.0.3a";
+		version.text = [NSString stringWithFormat:@"Version %@", _WFCVERSION_];
 		version.backgroundColor = [UIColor clearColor];
 		version.textAlignment = NSTextAlignmentCenter;
 
