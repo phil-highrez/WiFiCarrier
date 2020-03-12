@@ -45,6 +45,9 @@
 - (void)_statusBarTapped:(id)sender type:(NSInteger)type;
 @end
 
+typedef enum {STATE_DISABLED = -1, STATE_SSID = 0, STATE_PUBLICIP = 1, STATE_INTERNALIP = 2, STATE_CUSTOMCARRIER = 3, STATE_ORIGINAL = 4} eState;
+extern BOOL enableGesture;
+
 // Statics //
 static inline void forceUpdate();
 static inline void GetPublicIP();
@@ -56,3 +59,5 @@ static inline NSString *GetCarrierText(id original);
 
 extern void ChangeState();
 extern void Debug(id thing);
+extern void DeleteDebugLog();
+

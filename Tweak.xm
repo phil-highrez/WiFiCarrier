@@ -9,7 +9,6 @@ typedef struct __WiFiNetwork *WiFiNetworkRef;
 extern BOOL WiFiNetworkIsWPA(WiFiNetworkRef network);
 extern BOOL WiFiNetworkIsEAP(WiFiNetworkRef network);
 
-static NSString *strDebugFile = @"/tmp/WiFiCarrier.log";
 static NSDateFormatter *dateFormatter = nil;
 
 static BOOL hasFullyLoaded = NO;
@@ -20,7 +19,7 @@ static BOOL bIsGettingIP = NO;
 static NSString *originalName = @"";
 static NSString *publicIP = @"";
 static id subscriptionContext = nil;
-static int nCurrentState = -1;
+static eState eCurrentState = STATE_DISABLED;
 
 //Reachability
 //static SCNetworkReachabilityRef reachability;
@@ -33,10 +32,12 @@ static BOOL enableSSID = false;
 static BOOL enableIPADDR = false;
 static BOOL enableExtIP = false;
 static BOOL enableWFC = false;
+BOOL enableGesture = false;
 static NSString *customCarrier = @"";
 static NSString *srcWiFiCalling = @"";
 static NSString *customWiFiCalling1 = @"";
 static NSString *customWiFiCalling2 = @"";
+
 
 %hook STTelephonyStateProvider
 //The following is for IOS 13 support.
@@ -118,8 +119,7 @@ static NSString *customWiFiCalling2 = @"";
 %hook SpringBoard
 - (void)applicationDidFinishLaunching:(id)application {
 	%orig;
-
-	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 5.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^(void) {
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^(void) {
 		hasFullyLoaded = YES;
 		forceUpdate();
 	});
@@ -129,12 +129,12 @@ static NSString *customWiFiCalling2 = @"";
 %hook UIStatusBarWindow
 - (id)initWithFrame:(CGRect)frame {
     self = %orig;
-	[self addGestureRecognizer:[[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleGestureFrom:)]];
+		[self addGestureRecognizer:[[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleGestureFrom:)]];
 	return self;
 }
 
 %new -(void)handleGestureFrom:(UILongPressGestureRecognizer *)recognizer {
-	if (recognizer.state == UIGestureRecognizerStateBegan) {
+	if (enableGesture && recognizer.state == UIGestureRecognizerStateBegan) {
 		ChangeState();	
 	}
 }
@@ -146,14 +146,56 @@ static NSString *customWiFiCalling2 = @"";
 void ChangeState() {
 	if (hasFullyLoaded)
 	{
-		nCurrentState++;
-		if (nCurrentState==1 && !enableExtIP)
-			nCurrentState=2;
-		else if (nCurrentState == 3 && !enableCustomCarrier)
-			nCurrentState=4;
-		else if (nCurrentState>4)
-			nCurrentState=0;
-		forceUpdate();
+		if (!enableGesture)
+			return;
+		
+		//A little (simple) state machine
+		eState eStartState = eCurrentState;
+		if (!enabled)
+		{
+			eCurrentState = STATE_DISABLED;
+			return;
+		}
+		
+		if (eCurrentState == STATE_DISABLED) {
+			if (!enabled)
+				return;
+			
+			//Work out the actual current state of the display so we cycle the new state from that point...
+			if (enableIPADDR) {
+				if (enableExtIP)
+					eCurrentState = STATE_PUBLICIP;
+				else 
+					eCurrentState = STATE_INTERNALIP;
+			}
+			else if (enableSSID)
+				eCurrentState = STATE_SSID;
+			else if (enableCustomCarrier)
+				eCurrentState = STATE_CUSTOMCARRIER;
+			else {
+				//Nothing enabled... Go home!
+				eCurrentState = STATE_DISABLED;
+				return;
+			}
+			Debug([NSString stringWithFormat:@"Initial gesture state %d", (int)eCurrentState]);
+		}
+		
+		eCurrentState = eCurrentState==STATE_ORIGINAL ? STATE_SSID : (eState)((int)eCurrentState+1);
+		if (eCurrentState==STATE_SSID && !enableSSID)
+			eCurrentState=STATE_PUBLICIP;
+		if (eCurrentState==STATE_PUBLICIP && (!enableExtIP || !enableIPADDR))
+			eCurrentState=STATE_INTERNALIP;
+		if (eCurrentState==STATE_INTERNALIP && !enableIPADDR)
+			eCurrentState=STATE_CUSTOMCARRIER;		
+		else if (eCurrentState == STATE_CUSTOMCARRIER && !enableCustomCarrier)
+			eCurrentState=STATE_ORIGINAL;
+		else if (eCurrentState>STATE_ORIGINAL)
+			eCurrentState=STATE_SSID;
+		
+		Debug([NSString stringWithFormat:@"ChangeState from %d to %d", (int)eStartState, (int)eCurrentState]);
+		
+		if (eCurrentState!=eStartState)		
+			forceUpdate();
 	}
 }
 
@@ -164,12 +206,12 @@ static inline NSString *GetCarrierText(id original) {
 	BOOL setNetwork = NO;
 	NSString* networkName = GetNetworkNameOrIP(); 
 	if (!IsEmpty(networkName)) {
-		setNetwork = enableSSID || enableIPADDR;
+		setNetwork = enableSSID || enableIPADDR || eCurrentState == STATE_ORIGINAL;
 		newNetwork = networkName;
 	}
 
 	//Check for WiFi Calling and if found, append our custom WFC text
-	if (enableWFC && [srcWiFiCalling length] > 0 && nCurrentState!=4)
+	if (enableWFC && [srcWiFiCalling length] > 0 && eCurrentState != STATE_ORIGINAL)
 	{
 		if ([originalName containsString:srcWiFiCalling])
 		{
@@ -234,17 +276,17 @@ static inline NSString *GetNetworkNameOrIP()
 	bool bAvailable = NO;
 	NSString *networkName = [manager currentNetworkName];
 
-	if (nCurrentState==4)
+	if (eCurrentState==STATE_ORIGINAL)
 		return originalName;
 
-	if (nCurrentState==3)
+	if (eCurrentState==STATE_CUSTOMCARRIER)
 		return customCarrier;
 
-	if (nCurrentState==0)
+	if (eCurrentState==STATE_SSID)
 		return networkName;
 
-	if (enableIPADDR && (nCurrentState==1 || nCurrentState==2)) {
-		if (enableExtIP && nCurrentState==1) {
+	if (enableIPADDR && (eCurrentState==STATE_PUBLICIP || eCurrentState==STATE_INTERNALIP || eCurrentState==STATE_DISABLED)) {
+		if (enableExtIP && eCurrentState==STATE_PUBLICIP || eCurrentState==STATE_DISABLED) {
 			if (!bIsGettingIP) {
 				bIsGettingIP = YES;
 				//Get the public IP - only if the server is reachable....
@@ -267,7 +309,7 @@ static inline NSString *GetNetworkNameOrIP()
 		}
 		NSString* ip = GetIPAddress();
 		if (enableExtIP) {
-			if (nCurrentState==2)
+			if (eCurrentState==STATE_INTERNALIP)
 				return ip;
 
 			if (IsEmpty(publicIP))
@@ -356,12 +398,13 @@ static void loadPrefs() {
 	if (!enableDebug) {
 		//delete the debug file in the tmp folder (if it exists)
 		NSFileManager *fileManager = [NSFileManager defaultManager];
-		if ([fileManager isDeletableFileAtPath: strDebugFile])
+		if ([fileManager isDeletableFileAtPath: _DEBUGLOG_])
 		{
-			[fileManager removeItemAtPath:strDebugFile error:nil];
+			[fileManager removeItemAtPath:_DEBUGLOG_ error:nil];
 		}
 	}
 	
+	enableGesture = ( [prefs objectForKey:@"enableGesture"] ? [[prefs objectForKey:@"enableGesture"] boolValue] : NO );
 	enableSSID = ( [prefs objectForKey:@"enableSSID"] ? [[prefs objectForKey:@"enableSSID"] boolValue] : YES );
 	enableIPADDR = ( [prefs objectForKey:@"enableIPADDR"] ? [[prefs objectForKey:@"enableIPADDR"] boolValue] : NO );
 	enableExtIP = ( [prefs objectForKey:@"enableExtIP"] ? [[prefs objectForKey:@"enableExtIP"] boolValue] : YES );
@@ -374,7 +417,7 @@ static void loadPrefs() {
 	customWiFiCalling2 = ( [prefs objectForKey:@"wifiCalling2"] ? [[prefs objectForKey:@"wifiCalling2"] stringValue] : nil );
 
 	Debug([NSString stringWithFormat: @"enabled: %@", enabled ? @"YES" : @"NO"]);
-	Debug([NSString stringWithFormat: @"enableDebug: %@", enableDebug ? @"YES" : @"NO"]);
+	Debug([NSString stringWithFormat: @"enableGesture: %@", enableGesture ? @"YES" : @"NO"]);
 	Debug([NSString stringWithFormat: @"enableSSID: %@", enableSSID ? @"YES" : @"NO"]);
 	Debug([NSString stringWithFormat: @"enableIPADDR: %@", enableIPADDR ? @"YES" : @"NO"]);
 	Debug([NSString stringWithFormat: @"enableExtIP: %@", enableExtIP ? @"YES" : @"NO"]);
@@ -396,6 +439,12 @@ static void refreshPrefs() {
   forceUpdate();
 }
 
+static void refreshPrefs2() {
+  loadPrefs();
+  eCurrentState = STATE_DISABLED;
+  forceUpdate();
+}
+
 static void initPrefs() {
   // Copy the default preferences file when the actual preference file doesn't exist
   NSString *path = @"/User/Library/Preferences/com.highrez.wificarrier.plist";
@@ -411,14 +460,14 @@ void Debug(id thing) {
 		NSString *dateString = [dateFormatter stringFromDate:[NSDate date]];
 		NSString *content = [NSString stringWithFormat:@"%@: %@\n",dateString, thing];
 		
-		NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:strDebugFile];
+		NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:_DEBUGLOG_];
 		if (fileHandle){
 			[fileHandle seekToEndOfFile];
 			[fileHandle writeData:[content dataUsingEncoding:NSUTF8StringEncoding]];
 			[fileHandle closeFile];
 		}
 		else{
-			[content writeToFile:strDebugFile
+			[content writeToFile:_DEBUGLOG_
 					  atomically:NO
 						encoding:NSStringEncodingConversionAllowLossy
 						   error:nil];
@@ -432,4 +481,5 @@ void Debug(id thing) {
 	initPrefs();
 	loadPrefs();
 	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)refreshPrefs, CFSTR("com.highrez.wificarrier/prefsupdated"), NULL, CFNotificationSuspensionBehaviorCoalesce);
+	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)refreshPrefs2, CFSTR("com.highrez.wificarrier/prefsupdated2"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 }

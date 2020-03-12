@@ -65,6 +65,16 @@ MFMailComposeViewController *mMFComposer;
 - (void)mailComposeController:(MFMailComposeViewController *)controller 
           didFinishWithResult:(MFMailComposeResult)result 
                         error:(NSError *)error {
+						
+	if (result == MFMailComposeResultSent) {
+		//Sent OK - Delete the log file....
+		NSFileManager *fileManager = [NSFileManager defaultManager];
+		if ([fileManager isDeletableFileAtPath: _DEBUGLOG_])
+		{
+			[fileManager removeItemAtPath:_DEBUGLOG_ error:nil];
+		}
+	}
+						
     [controller dismissViewControllerAnimated:YES completion:nil];
 }
 

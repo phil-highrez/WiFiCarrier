@@ -7,7 +7,7 @@
 
 %group iOS13
 
-	// Runs in SpringBoard; forwards status bar events to app
+	// For IOS13 status bar IN APP... Runs in SpringBoard; forwards status bar events to app
 	%hook SBMainDisplaySceneLayoutStatusBarView
 	- (void)_addStatusBarIfNeeded {
 		%orig;
@@ -19,23 +19,12 @@
 
 	%new
 	- (void)wfcGestureHandler:(UILongPressGestureRecognizer  *)recognizer {
-		if (recognizer.state == UIGestureRecognizerStateBegan) {
+		if (enableGesture && recognizer.state == UIGestureRecognizerStateBegan) {
 			ChangeState();
 		}
 	}
 	%end // SBMainDisplaySceneLayoutStatusBarView
 
-	// Runs in apps; receives status bar events
-	%hook UIStatusBarManager
-	- (void)handleTapAction:(UIStatusBarTapAction *)action {
-		Debug(@"UIStatusBarManager handleTapAction");
-		if (action.type == kWFCTapGesture) {
-			ChangeState();
-		} else {
-			%orig(action);
-		}
-	}
-	%end // UIStatusBarManager
 %end // iOS13StatusBar
 
 %ctor {
