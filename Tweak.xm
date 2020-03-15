@@ -119,7 +119,7 @@ static NSString *customWiFiCalling2 = @"";
 %hook SpringBoard
 - (void)applicationDidFinishLaunching:(id)application {
 	%orig;
-	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^(void) {
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 4.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^(void) {
 		hasFullyLoaded = YES;
 		forceUpdate();
 	});
@@ -135,7 +135,7 @@ static NSString *customWiFiCalling2 = @"";
 
 %new -(void)handleGestureFrom:(UILongPressGestureRecognizer *)recognizer {
 	if (enableGesture && recognizer.state == UIGestureRecognizerStateBegan) {
-		ChangeState();	
+		ChangeState();
 	}
 }
 %end
