@@ -56,6 +56,8 @@
 		<dict>
 			<key>cell</key> 					<string>PSGroupCell</string>
 			<key>label</key> 					<string>Custom Carrier</string>
+			<key>footerText</key>				<string>With custom carrier text enabled, leave this empty to hide the carrier text.</string>
+			<key>footerAlignment</key> 			<string>0</string>
 		</dict>
 		<dict>
 			<key>cell</key>						<string>PSSwitchCell</string>
@@ -79,6 +81,8 @@
 		<dict>
 			<key>cell</key> 					<string>PSGroupCell</string>
 			<key>label</key> 					<string>Wifi Calling</string>
+			<key>footerText</key> 				<string>* Only applicable when not using SSID/IP</string>
+			<key>footerAlignment</key> 			<string>0</string>
 		</dict>
 		<dict>
 			<key>cell</key>						<string>PSSwitchCell</string>
@@ -120,11 +124,6 @@
 			<key>label</key> 					<string>Add to Carrier*:</string>
 			<key>PostNotification</key> 		<string>com.highrez.wificarrier/prefsupdated</string>
 		</dict>
-		<dict>
-			<key>cell</key> 					<string>PSGroupCell</string>
-			<key>footerText</key> 				<string>* Only applicable when not using SSID/IP</string>
-			<key>footerAlignment</key> 			<string>0</string>
-		</dict>		
 
 		<dict>
 			<key>cell</key> 					<string>PSGroupCell</string>
